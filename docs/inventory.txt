@@ -1,0 +1,89 @@
+================================================================================
+CALIBRATED DIABETES RISK SCREENER - PROJECT INVENTORY
+================================================================================
+
+1. PROJECT OVERVIEW
+--------------------------------------------------------------------------------
+Project Name:        Calibrated Diabetes Risk Screener
+Dataset Scale:       100,000 Patient Records
+Repository Root:     diabetes_ml_project
+Architecture:        Full-Stack ML Pipeline (Preprocessing -> Modeling -> Calibration -> Deployment)
+
+2. TARGET SPECIFICATION
+--------------------------------------------------------------------------------
+Target Variable:     diagnosed_diabetes
+Target Type:         Binary Classification
+Class Encoding:      0 = No Diabetes
+                     1 = Diabetes
+
+3. INPUT FEATURES (28 Raw Features Across 4 Domains)
+--------------------------------------------------------------------------------
+A. Demographic Features (6):
+   - age: Patient age (years)
+   - gender: Biological sex
+   - ethnicity: Racial / ethnic background
+   - education_level: Highest educational attainment
+   - income_level: Household income bracket
+   - employment_status: Current employment category
+
+B. Lifestyle Features (6):
+   - smoking_status: Current / past smoking behavior
+   - alcohol_consumption_per_week: Weekly alcohol consumption units
+   - physical_activity_minutes_per_week: Exercise duration in minutes/week
+   - diet_score: Nutritional quality index
+   - sleep_hours_per_day: Average daily sleep duration
+   - screen_time_hours_per_day: Daily sedentary screen time hours
+
+C. Clinical & Anthropometric Features (8):
+   - family_history_diabetes: Immediate family history of diabetes (binary/categorical)
+   - hypertension_history: Documented hypertension diagnosis
+   - cardiovascular_history: History of cardiovascular disease
+   - bmi: Body Mass Index (kg/m^2)
+   - waist_to_hip_ratio: Waist-to-hip circumference ratio
+   - systolic_bp: Systolic blood pressure (mmHg)
+   - diastolic_bp: Diastolic blood pressure (mmHg)
+   - heart_rate: Resting heart rate (bpm)
+
+D. Laboratory Biomarkers (8):
+   - cholesterol_total: Total serum cholesterol (mg/dL)
+   - hdl_cholesterol: High-density lipoprotein cholesterol (mg/dL)
+   - ldl_cholesterol: Low-density lipoprotein cholesterol (mg/dL)
+   - triglycerides: Serum triglycerides (mg/dL)
+   - glucose_fasting: Fasting plasma glucose (mg/dL)
+   - glucose_postprandial: 2-hour postprandial glucose (mg/dL)
+   - insulin_level: Fasting / serum insulin level (μU/mL)
+   - hba1c: Glycated hemoglobin percentage (%)
+
+Excluded Derivative / Target Artifacts:
+   - diabetes_risk_score
+   - diabetes_stage
+
+4. BASELINE BENCHMARK
+--------------------------------------------------------------------------------
+Model:               Random Forest Classifier
+Evaluation Metrics:
+   - Accuracy:       91.98%
+   - F1-Score:       92.84%
+
+5. DEPLOYMENT SCOPE & ARCHITECTURE
+--------------------------------------------------------------------------------
+- Local Production API: Flask RESTful API serving calibrated probability predictions
+- Interactive UI:       Modern Angular Web Application for clinical screening & interactive risk profiling
+- Static Demonstration: Exported static web client deployment on GitHub Pages
+- CI/CD & Automation:   .github/workflows/ automation for validation, testing, and deployment
+
+6. DIRECTORY STRUCTURE
+--------------------------------------------------------------------------------
+diabetes_ml_project/
+├── backend/
+│   ├── models/
+│   └── tests/
+├── data/
+│   ├── diabetes_dataset.csv
+│   ├── train_diabetes.csv
+│   └── test_diabetes.csv
+├── docs/
+│   └── inventory.txt
+└── .github/
+    └── workflows/
+================================================================================

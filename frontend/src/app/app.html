@@ -1,0 +1,266 @@
+<div class="app-layout">
+  <!-- Static Deployment Warning Banner -->
+  <aside class="deployment-banner" role="alert" aria-live="polite">
+    <div class="banner-content">
+      <div class="banner-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
+      <div class="banner-text">
+        <strong>Deployment Scope & Connectivity:</strong>
+        Live inference is served via the local Flask backend on <code>http://127.0.0.1:5000</code>. When deployed as a static demo on GitHub Pages, backend connectivity depends on an accessible CORS-enabled API instance.
+      </div>
+      <div class="backend-status-pill" [class.online]="backendOnline === true" [class.offline]="backendOnline === false">
+        <span class="status-dot"></span>
+        <span class="status-label">
+          Backend: {{ backendOnline === true ? 'Online (v1.0)' : backendOnline === false ? 'Offline' : 'Connecting...' }}
+        </span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-badge">CLINICAL ML PIPELINE</div>
+        <h1 class="brand-title">Calibrated Diabetes Risk Screener</h1>
+        <p class="brand-subtitle">
+          Comprehensive multi-domain screening across 28 demographic, lifestyle, clinical, and glycaemic laboratory biomarkers.
+        </p>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="header-actions">
+        <button type="button" class="btn btn-secondary" (click)="loadSamplePatient()" id="load-sample-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          Load Test Patient
+        </button>
+
+        <button type="button" class="btn btn-ghost" (click)="resetForm()" id="reset-form-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="1 4 1 10 7 10"></polyline>
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+          </svg>
+          Reset
+        </button>
+      </div>
+    </div>
+
+    <!-- Metadata Benchmarks Strip -->
+    <div class="benchmark-strip">
+      <div class="benchmark-item">
+        <span class="benchmark-val">28</span>
+        <span class="benchmark-label">Input Biomarkers</span>
+      </div>
+      <div class="benchmark-divider"></div>
+      <div class="benchmark-item">
+        <span class="benchmark-val">100,000</span>
+        <span class="benchmark-label">Calibration Records</span>
+      </div>
+      <div class="benchmark-divider"></div>
+      <div class="benchmark-item">
+        <span class="benchmark-val">91.98%</span>
+        <span class="benchmark-label">Baseline Accuracy</span>
+      </div>
+      <div class="benchmark-divider"></div>
+      <div class="benchmark-item">
+        <span class="benchmark-val">92.84%</span>
+        <span class="benchmark-label">Baseline F1 Score</span>
+      </div>
+      <div class="benchmark-divider"></div>
+      <div class="benchmark-item">
+        <span class="benchmark-val">Leakage-Safe</span>
+        <span class="benchmark-label">Preprocessing</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <!-- Prediction Result Display -->
+    @if (predictionResult) {
+      <section id="results-section" class="prediction-card" [class.risk-high]="riskCategory === 'High'" [class.risk-moderate]="riskCategory === 'Moderate'" [class.risk-low]="riskCategory === 'Low'">
+        <div class="result-header">
+          <div class="result-title-group">
+            <span class="result-badge" [class.badge-danger]="riskCategory === 'High'" [class.badge-warning]="riskCategory === 'Moderate'" [class.badge-success]="riskCategory === 'Low'">
+              {{ riskCategory }} Risk Assessment
+            </span>
+            <h2 class="result-title">
+              {{ predictionResult.prediction === 1 ? 'High Probability of Diabetes Detected' : 'Negative for Diabetic Risk Indicators' }}
+            </h2>
+          </div>
+          <div class="result-class-tag">
+            Class {{ predictionResult.prediction }} ({{ predictionResult.task }})
+          </div>
+        </div>
+
+        <div class="probabilities-grid">
+          <!-- Diabetes Probability Card -->
+          <div class="prob-box prob-positive">
+            <div class="prob-header">
+              <span class="prob-label">Diabetes Risk (Class 1)</span>
+              <span class="prob-val">{{ riskPercentage }}%</span>
+            </div>
+            <div class="prob-bar-container">
+              <div class="prob-bar-fill fill-danger" [style.width.%]="riskPercentage"></div>
+            </div>
+          </div>
+
+          <!-- Non-diabetic Probability Card -->
+          <div class="prob-box prob-negative">
+            <div class="prob-header">
+              <span class="prob-label">Non-Diabetic / Normal (Class 0)</span>
+              <span class="prob-val">{{ healthyPercentage }}%</span>
+            </div>
+            <div class="prob-bar-container">
+              <div class="prob-bar-fill fill-success" [style.width.%]="healthyPercentage"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clinical Disclaimer -->
+        <div class="result-disclaimer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <p>{{ predictionResult.disclaimer }}</p>
+        </div>
+      </section>
+    }
+
+    <!-- Global Error Message -->
+    @if (errorMessage) {
+      <div class="alert alert-error" role="alert">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="15" y1="9" x2="9" y2="15"></line>
+          <line x1="9" y1="9" x2="15" y2="15"></line>
+        </svg>
+        <span>{{ errorMessage }}</span>
+      </div>
+    }
+
+    <!-- 28-Feature Input Form -->
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="features-form" id="diabetes-risk-form">
+      <div class="form-grid">
+        @for (group of featureGroups; track group) {
+          <div class="group-card">
+            <div class="group-header">
+              <h3 class="group-title">{{ group }}</h3>
+              <span class="group-count">{{ getFeaturesByGroup(group).length }} features</span>
+            </div>
+
+            <div class="group-fields">
+              @for (feature of getFeaturesByGroup(group); track feature.name) {
+                <div class="field-item" [class.field-invalid]="form.get(feature.name)?.invalid && form.get(feature.name)?.touched">
+                  <div class="field-label-row">
+                    <label [for]="feature.name" class="field-label">
+                      {{ feature.label }}
+                      @if (feature.required) {
+                        <span class="required-star">*</span>
+                      }
+                    </label>
+                    @if (feature.unit) {
+                      <span class="field-unit">{{ feature.unit }}</span>
+                    }
+                  </div>
+
+                  <!-- Select Control -->
+                  @if (feature.kind === 'select') {
+                    <select
+                      [id]="feature.name"
+                      [formControlName]="feature.name"
+                      class="form-control form-select"
+                    >
+                      @for (opt of feature.options; track opt.value) {
+                        <option [value]="opt.value">{{ opt.label }}</option>
+                      }
+                    </select>
+                  }
+
+                  <!-- Number Control -->
+                  @if (feature.kind === 'number') {
+                    <input
+                      type="number"
+                      [id]="feature.name"
+                      [formControlName]="feature.name"
+                      [min]="feature.min ?? null"
+                      [max]="feature.max ?? null"
+                      [step]="feature.step ?? 1"
+                      class="form-control form-input"
+                    />
+                  }
+
+                  <!-- Validation Messages -->
+                  @if (form.get(feature.name)?.invalid && form.get(feature.name)?.touched) {
+                    <div class="field-error">
+                      @if (form.get(feature.name)?.hasError('required')) {
+                        <span>This field is required.</span>
+                      }
+                      @if (form.get(feature.name)?.hasError('min')) {
+                        <span>Minimum value is {{ feature.min }}.</span>
+                      }
+                      @if (form.get(feature.name)?.hasError('max')) {
+                        <span>Maximum value is {{ feature.max }}.</span>
+                      }
+                    </div>
+                  }
+
+                  @if (feature.tooltip) {
+                    <span class="field-hint">{{ feature.tooltip }}</span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Action Footer -->
+      <div class="form-actions-bar">
+        <div class="status-summary">
+          <span class="summary-indicator"></span>
+          <span class="summary-text">{{ completedCount }} of 28 features configured</span>
+        </div>
+
+        <div class="actions-buttons">
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="isLoading"
+            id="submit-prediction-btn"
+          >
+            @if (isLoading) {
+              <span class="spinner"></span>
+              <span>Running Inference...</span>
+            } @else {
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              <span>Run local prediction</span>
+            }
+          </button>
+        </div>
+      </div>
+    </form>
+  </main>
+
+  <footer class="app-footer">
+    <div class="footer-container">
+      <p>Calibrated Diabetes Risk Screener — Powered by Scikit-Learn RandomForestClassifier Pipeline</p>
+      <p class="footer-sub">Standardized preprocessing with categorical one-hot encoding & numerical scaling.</p>
+    </div>
+  </footer>
+</div>
