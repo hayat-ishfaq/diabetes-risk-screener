@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PredictionService, PredictionResponse, HealthResponse } from './prediction.service';
@@ -14,6 +14,7 @@ import { FEATURE_SCHEMA, FEATURE_GROUPS, FeatureMetadata, SAMPLE_PATIENT_PAYLOAD
 export class App implements OnInit {
   private fb = inject(FormBuilder);
   private predictionService = inject(PredictionService);
+  private cdr = inject(ChangeDetectorRef);
 
   readonly featureGroups = FEATURE_GROUPS;
   readonly featureSchema = FEATURE_SCHEMA;
@@ -58,10 +59,12 @@ export class App implements OnInit {
       next: (res) => {
         this.backendOnline = true;
         this.healthInfo = res;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.backendOnline = false;
         this.healthInfo = null;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -70,6 +73,7 @@ export class App implements OnInit {
     this.form.patchValue(SAMPLE_PATIENT_PAYLOAD);
     this.form.markAsDirty();
     this.errorMessage = null;
+    this.cdr.detectChanges();
   }
 
   resetForm(): void {
@@ -80,17 +84,20 @@ export class App implements OnInit {
     this.form.reset(defaults);
     this.predictionResult = null;
     this.errorMessage = null;
+    this.cdr.detectChanges();
   }
 
   onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       this.errorMessage = 'Please correct the invalid input fields before submitting.';
+      this.cdr.detectChanges();
       return;
     }
 
     this.isLoading = true;
     this.errorMessage = null;
+    this.cdr.detectChanges();
 
     const rawValues = this.form.getRawValue();
     // Ensure numerical fields are cast to appropriate numbers
@@ -109,6 +116,7 @@ export class App implements OnInit {
         this.isLoading = false;
         this.predictionResult = response;
         this.backendOnline = true;
+        this.cdr.detectChanges();
 
         // Smooth scroll to prediction result card
         setTimeout(() => {
@@ -130,6 +138,7 @@ export class App implements OnInit {
           this.errorMessage =
             err.error?.error || 'An unexpected error occurred while predicting risk. Please try again.';
         }
+        this.cdr.detectChanges();
       }
     });
   }
